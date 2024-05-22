@@ -6,3 +6,6 @@
 
 [file_servers]
 10.31.146.61
+
+[workstations]
+10.31.146.31
