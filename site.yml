@@ -9,7 +9,29 @@
     apt:
       upgrade: dist
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: add ssh key for jeshish
+    tags: always
+    authorized_key:
+      user: jeshish
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBln2l1MOcCK6tcUvdEcaGvMazkt+jDpJWoOGEUnJXIj ansible"
+
+
+  - name: add sudoers file for jeshish
+    tags: always
+    copy:
+      src: sudoer_jeshish
+      dest: /etc/sudoers.d/jeshish
+      owner: root
+      group: root
+      mode: 0440
+
 
 - hosts: workstations
   become: true
@@ -50,6 +72,31 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: start nginx(Ubuntu)
+    tags: nginx,ubuntu
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Ubuntu"
+
+  - name: change email address for test
+    tags: nginx,ubuntu
+    lineinfile:
+      path: /etc/nginx/testConfig/testFile
+      regexp: '^email '
+      line: email jeshish@inficare.com.my
+    when: ansible_distribution == "Ubuntu"
+    register: nginxConfig
+
+  - name: restart nginx (Ubuntu)
+    tags: nginx,ubuntu
+    service:
+      name: nginx
+      state: restarted
+    when: nginxConfig.changed
+
 
 - hosts: db_servers
   become: true

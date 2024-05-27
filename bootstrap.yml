@@ -1,0 +1,40 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: install updates (Ubuntu)
+    tags: always
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: create jeshish user
+    tags: always
+    user: 
+      name: jeshish
+      groups: root
+
+
+  - name: add ssh key for jeshish
+    tags: always
+    authorized_key:
+      user: jeshish
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBln2l1MOcCK6tcUvdEcaGvMazkt+jDpJWoOGEUnJXIj ansible"
+
+
+  - name: add sudoers file for jeshish
+    tags: always
+    copy:
+      src: sudoer_jeshish
+      dest: /etc/sudoers.d/jeshish
+      owner: root
+      group: root
+      mode: 0440
+
