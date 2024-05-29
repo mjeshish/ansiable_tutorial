@@ -14,107 +14,28 @@
 
 - hosts: all
   become: true
-  tasks:
-
-  - name: add ssh key for jeshish
-    tags: always
-    authorized_key:
-      user: jeshish
-      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBln2l1MOcCK6tcUvdEcaGvMazkt+jDpJWoOGEUnJXIj ansible"
-
-
-  - name: add sudoers file for jeshish
-    tags: always
-    copy:
-      src: sudoer_jeshish
-      dest: /etc/sudoers.d/jeshish
-      owner: root
-      group: root
-      mode: 0440
+  roles:
+    - base
 
 
 - hosts: workstations
   become: true
-  tasks:
-
-  - name: install unzip
-    package:
-      name: unzip
-
-  - name: install terraform
-    unarchive:
-      src: https://releases.hashicorp.com/terraform/1.9.0-alpha20240516/terraform_1.9.0-alpha20240516_darwin_amd64.zip
-      dest: /usr/local/bin
-      remote_src: yes
-      mode: 0755
-      owner: root
-      group: root
+  roles:
+    - workstations
 
 
 - hosts: web_servers
   become: true
-  tasks:
-
-  - name: install apache2 and php package
-    tags: apache,apache2,ubuntu
-    apt:
-      name:
-        - apache2
-        - libapache2-mod-php
-      state: latest
-    when: ansible_distribution == "Ubuntu"
-
-  - name: copy default html file for site
-    tags: apache,apache2,httd
-    copy:
-      src: default_site.html
-      dest: /var/www/html/index.html
-      owner: root
-      group: root
-      mode: 0644
-
-  - name: start nginx(Ubuntu)
-    tags: nginx,ubuntu
-    service:
-      name: nginx
-      state: started
-      enabled: yes
-    when: ansible_distribution == "Ubuntu"
-
-  - name: change email address for test
-    tags: nginx,ubuntu
-    lineinfile:
-      path: /etc/nginx/testConfig/testFile
-      regexp: '^email '
-      line: email jeshish@inficare.com.my
-    when: ansible_distribution == "Ubuntu"
-    register: nginxConfig
-
-  - name: restart nginx (Ubuntu)
-    tags: nginx,ubuntu
-    service:
-      name: nginx
-      state: restarted
-    when: nginxConfig.changed
+  roles:
+    - web_servers
 
 
 - hosts: db_servers
   become: true
-  tasks:
-
-  - name: install mariadb package (Ubuntu)
-    tags: db,mariadb,ubuntu
-    apt:
-      name: mariadb-server
-      state: latest
-    when: ansible_distribution == "Ubuntu"
+  roles:
+    - db_servers
 
 - hosts: file_servers
   become: true
-  tasks:
-
-  - name: install samba package
-    tags: samba
-    package:
-      name: samba
-      state: latest
+  roles:
+    - file_servers

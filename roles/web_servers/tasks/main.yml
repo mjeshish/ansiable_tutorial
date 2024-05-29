@@ -1,0 +1,41 @@
+- name: install apache2 and php package
+  tags: apache,apache2,ubuntu
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-php
+    state: latest
+  when: ansible_distribution == "Ubuntu"
+
+- name: copy default html file for site
+  tags: apache,apache2,httd
+  copy:
+    src: default_site.html
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: 0644
+
+- name: start nginx(Ubuntu)
+  tags: nginx,ubuntu
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: change email address for test
+  tags: nginx,ubuntu
+  lineinfile:
+    path: /etc/nginx/testConfig/testFile
+    regexp: '^email '
+    line: email jeshish@inficare.com.my
+  when: ansible_distribution == "Ubuntu"
+  register: nginxConfig
+
+- name: restart nginx (Ubuntu)
+  tags: nginx,ubuntu
+  service:
+    name: nginx
+    state: restarted
+  when: nginxConfig.changed
